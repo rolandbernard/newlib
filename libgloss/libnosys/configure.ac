@@ -36,7 +36,7 @@ AC_ARG_PROGRAM
 
 AC_PROG_INSTALL
 
-AC_DEFINE(HAVE_GNU_LD)
+dnl AC_DEFINE(HAVE_GNU_LD)
 dnl Make sure syscall names match those being used by newlib
 case "${target}" in
   *-*-cygwin*)

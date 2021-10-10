@@ -2002,8 +2002,6 @@ test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL}'
 test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 
 
-$as_echo "#define HAVE_GNU_LD 1" >>confdefs.h
-
 case "${target}" in
   *-*-cygwin*)
 	;;
