@@ -138,6 +138,10 @@ int getpid() {
     return handleErrors(SYSCALL(SYSCALL_GETPID));
 }
 
+int getppid() {
+    return handleErrors(SYSCALL(SYSCALL_GETPPID));
+}
+
 int isatty(int file) {
     // TODO
     return -1;
