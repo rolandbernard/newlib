@@ -11,5 +11,11 @@
 #define WIFSTOPPED(val) (0)
 #define WSTOPSIG(val) ((val >> 8) & 0xff)
 
+typedef int pid_t;
+
+pid_t wait(int *);
+
+pid_t waitpid(int, int *, int);
+
 #endif /* _SYS_WAIT_H */
 

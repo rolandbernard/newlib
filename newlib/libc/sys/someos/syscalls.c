@@ -1,5 +1,4 @@
 
-#include <stdint.h>
 #include <stddef.h>
 #include <stdarg.h>
 #include <sys/fcntl.h>
@@ -9,93 +8,22 @@
 #include <sys/time.h>
 #include <sys/unistd.h>
 
-typedef enum {
-    SYSCALL_PRINT = 0,
-    SYSCALL_EXIT = 1,
-    SYSCALL_YIELD = 2,
-    SYSCALL_FORK = 3,
-    SYSCALL_SLEEP = 4,
-    SYSCALL_OPEN = 5,
-    SYSCALL_LINK = 6,
-    SYSCALL_UNLINK = 7,
-    SYSCALL_RENAME = 8,
-    SYSCALL_CLOSE = 9,
-    SYSCALL_READ = 10,
-    SYSCALL_WRITE = 11,
-    SYSCALL_SEEK = 12,
-    SYSCALL_STAT = 13,
-    SYSCALL_DUP = 14,
-    SYSCALL_TRUNC = 15,
-    SYSCALL_CHMOD = 16,
-    SYSCALL_CHOWN = 17,
-    SYSCALL_MOUNT = 18,
-    SYSCALL_UMOUNT = 19,
-    SYSCALL_EXECVE = 20,
-    SYSCALL_READDIR = 21,
-    SYSCALL_GETPID = 22,
-    SYSCALL_GETPPID = 23,
-    SYSCALL_WAIT = 24,
-    SYSCALL_SBRK = 25,
-    SYSCALL_PROTECT = 26,
-} Syscalls;
-
-static inline uintptr_t make_syscall(
-    uintptr_t _kind, uintptr_t _a1, uintptr_t _a2, uintptr_t _a3, uintptr_t _a4, uintptr_t _a5, uintptr_t _a6
-) {
-    register uintptr_t kind asm("a0") = _kind;
-    register uintptr_t a1 asm("a1") = _a1;
-    register uintptr_t a2 asm("a2") = _a2;
-    register uintptr_t a3 asm("a3") = _a3;
-    register uintptr_t a4 asm("a4") = _a4;
-    register uintptr_t a5 asm("a5") = _a5;
-    register uintptr_t a6 asm("a6") = _a6;
-    register uintptr_t result asm("a0");
-    asm(
-        "ecall"
-        : "=r" (result)
-        : "0" (kind), "r" (a1), "r" (a2), "r" (a3), "r" (a4), "r" (a5), "r" (a6)
-    );
-    return result;
-}
-
-#define CONSOME(...)
-#define KEEP(...) __VA_ARGS__
-
-#define IFN(...) CONSOME __VA_OPT__(()KEEP)
-
-#define IFE(...) KEEP __VA_OPT__(()CONSOME)
-
-#define Z6(...) IFE(__VA_ARGS__)(0, 0, 0, 0, 0, 0) IFN(__VA_ARGS__)(Z5(__VA_ARGS__))
-#define Z5(A1, ...) A1, IFE(__VA_ARGS__)(0, 0, 0, 0, 0) IFN(__VA_ARGS__)(Z4(__VA_ARGS__))
-#define Z4(A1, ...) A1, IFE(__VA_ARGS__)(0, 0, 0, 0) IFN(__VA_ARGS__)(Z3(__VA_ARGS__))
-#define Z3(A1, ...) A1, IFE(__VA_ARGS__)(0, 0, 0) IFN(__VA_ARGS__)(Z2(__VA_ARGS__))
-#define Z2(A1, ...) A1, IFE(__VA_ARGS__)(0, 0) IFN(__VA_ARGS__)(Z1(__VA_ARGS__))
-#define Z1(A1, ...) A1, IFE(__VA_ARGS__)(0) IFN(__VA_ARGS__)(__VA_ARGS__)
-
-#define SYSCALL(KIND, ...) make_syscall(KIND, Z6(__VA_ARGS__))
+#include "syscalls.h"
 
 static inline uintptr_t handleErrors(uintptr_t error) {
     // TODO: set errno
     return (int)error < 0 ? -1 : error;
 }
 
-void _exit() {
-    for (;;) {
-        SYSCALL(SYSCALL_EXIT);
-    }
+int _close(int file) {
+    return handleErrors(SYSCALL(SYSCALL_CLOSE, file));
 }
 
-int close(int file) {
-    return handleErrors(SYSCALL(SYSCALL_EXIT));
-}
-
-char **environ;
-
-int execve(const char *name, char* const argv[], char* const env[]) {
+int _execve(const char *name, char* const argv[], char* const env[]) {
     return handleErrors(SYSCALL(SYSCALL_EXECVE, (uintptr_t)argv, (uintptr_t)env));
 }
 
-int fork() {
+int _fork() {
     return handleErrors(SYSCALL(SYSCALL_FORK));
 }
 
@@ -112,7 +40,7 @@ typedef struct {
     uint64_t ctime;
 } SyscallStat;
 
-int fstat(int file, struct stat *st) {
+int _fstat(int file, struct stat *st) {
     SyscallStat stat;
     int error = handleErrors(SYSCALL(SYSCALL_STAT, file, (uintptr_t)&stat));
     st->st_ino = stat.id;
@@ -134,7 +62,7 @@ int fstat(int file, struct stat *st) {
     return error;
 }
 
-int getpid() {
+int _getpid() {
     return handleErrors(SYSCALL(SYSCALL_GETPID));
 }
 
@@ -142,17 +70,16 @@ int getppid() {
     return handleErrors(SYSCALL(SYSCALL_GETPPID));
 }
 
-int isatty(int file) {
+int _isatty(int file) {
     // TODO
     return -1;
 }
 
-int kill(int pid, int sig) {
-    // TODO
-    return -1;
+int _kill(int pid, int sig) {
+    return handleErrors(SYSCALL(SYSCALL_KILL, pid, sig));
 }
 
-int link(const char *old, const char *new) {
+int _link(const char *old, const char *new) {
     return handleErrors(SYSCALL(SYSCALL_LINK, (uintptr_t)old, (uintptr_t)new));
 }
 
@@ -162,7 +89,7 @@ typedef enum {
     FILE_SEEK_END = 2,
 } SyscallSeekWhence;
 
-off_t lseek(int file, off_t ptr, int dir) {
+off_t _lseek(int file, off_t ptr, int dir) {
     SyscallSeekWhence whence = 0;
     if (dir == SEEK_END) {
         whence = FILE_SEEK_END;
@@ -187,7 +114,7 @@ typedef enum {
     FILE_OPEN_EXCL = (1 << 9),
 } SyscallOpenFlags;
 
-int open(const char *name, int flags, ...) {
+int _open(const char *name, int flags, ...) {
     int mode = 0;
     SyscallOpenFlags sys_flags = 0;
     if ((flags & O_CREAT) != 0) {
@@ -215,40 +142,55 @@ int open(const char *name, int flags, ...) {
     return handleErrors(SYSCALL(SYSCALL_OPEN, (uintptr_t)name, sys_flags, mode));
 }
 
-ssize_t read(int file, void* ptr, size_t len) {
+ssize_t _read(int file, void* ptr, size_t len) {
     return handleErrors(SYSCALL(SYSCALL_READ, file, (uintptr_t)ptr, len));
 }
 
-void* sbrk(ptrdiff_t incr) {
+void* _sbrk(ptrdiff_t incr) {
     return (void*)handleErrors(SYSCALL(SYSCALL_SBRK, incr));
 }
 
-int stat(const char *file, struct stat *st) {
+int _stat(const char *file, struct stat *st) {
     int fd = open(file, 0);
     int result = fstat(fd, st);
     close(fd);
     return result;
 }
 
-clock_t times(struct tms *buf) {
+clock_t _times(struct tms *buf) {
     // TODO
     return -1;
 }
 
-int unlink(const char *name) {
-    return  handleErrors(SYSCALL(SYSCALL_UNLINK, (uintptr_t)name));
+int _unlink(const char *name) {
+    return handleErrors(SYSCALL(SYSCALL_UNLINK, (uintptr_t)name));
 }
 
-int wait(int *status) {
-    return  handleErrors(SYSCALL(SYSCALL_WAIT, (uintptr_t)status));
+int waitpid(int pid, int* status, int flags) {
+    return handleErrors(SYSCALL(SYSCALL_WAIT, pid, (uintptr_t)status));
 }
 
-ssize_t write(int file, const void* ptr, size_t len) {
-    return handleErrors(SYSCALL(SYSCALL_READ, file, (uintptr_t)ptr, len));
+int _wait(int* status) {
+    return waitpid(0, status, 0);
+}
+
+ssize_t _write(int file, const void* ptr, size_t len) {
+    return handleErrors(SYSCALL(SYSCALL_WRITE, file, (uintptr_t)ptr, len));
 }
 
 int gettimeofday(struct timeval* __p, void* __tz) {
     // TODO
     return -1;
+}
+
+int nanosleep(struct timespec* time, struct timespec* rem) {
+    size_t left = SYSCALL(SYSCALL_SLEEP, time->tv_sec * 1000000000UL + time->tv_nsec);
+    rem->tv_sec = left / 1000000000UL;
+    rem->tv_nsec = left % 1000000000UL;
+    if ((int)left < 0) {
+        return -1;
+    } else {
+        return 0;
+    }
 }
 
