@@ -15,10 +15,10 @@ typedef struct _dirdesc {
 #include <sys/types.h>
 
 struct dirent {
-    long d_ino;
-    off_t d_off;
-    unsigned short d_reclen;
-    /* we need better syntax for variable-sized arrays */
+    size_t d_ino;
+    size_t d_off;
+    size_t d_reclen;
+    int d_type;
     char d_name[1];
 };
 

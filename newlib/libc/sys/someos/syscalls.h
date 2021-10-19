@@ -34,6 +34,12 @@ typedef enum {
     SYSCALL_SIGACTION = 27,
     SYSCALL_SIGRETURN = 28,
     SYSCALL_KILL = 29,
+    SYSCALL_GETUID = 30,
+    SYSCALL_GETGID = 31,
+    SYSCALL_SETUID = 32,
+    SYSCALL_SETGID = 33,
+    SYSCALL_CHDIR = 34,
+    SYSCALL_GETCWD = 35,
 } Syscalls;
 
 static inline uintptr_t make_syscall(

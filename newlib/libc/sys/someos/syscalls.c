@@ -1,6 +1,5 @@
 
 #include <stddef.h>
-#include <stdarg.h>
 #include <sys/fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -8,6 +7,7 @@
 #include <sys/time.h>
 #include <sys/unistd.h>
 
+#include "sys/dirent.h"
 #include "syscalls.h"
 
 static inline uintptr_t handleErrors(uintptr_t error) {
@@ -38,27 +38,30 @@ typedef struct {
     uint64_t atime;
     uint64_t mtime;
     uint64_t ctime;
+    size_t dev;
 } SyscallStat;
 
 int _fstat(int file, struct stat *st) {
-    SyscallStat stat;
+    volatile SyscallStat stat;
     int error = handleErrors(SYSCALL(SYSCALL_STAT, file, (uintptr_t)&stat));
-    st->st_ino = stat.id;
-    st->st_mode = stat.mode;
-    st->st_nlink = stat.nlinks;
-    st->st_uid = stat.uid;
-    st->st_gid = stat.gid;
-    st->st_size = stat.size;
-    st->st_blksize = stat.size;
-    st->st_blocks = stat.size / stat.block_size;
-    st->st_atim.tv_nsec = 0;
-    st->st_atim.tv_sec = stat.atime;
-    st->st_mtim.tv_nsec = 0;
-    st->st_mtim.tv_sec = stat.mtime;
-    st->st_ctim.tv_nsec = 0;
-    st->st_ctim.tv_sec = stat.ctime;
-    st->st_dev = 0;
-    st->st_rdev = 0;
+    if (error == 0) {
+        st->st_ino = stat.id;
+        st->st_mode = stat.mode;
+        st->st_nlink = stat.nlinks;
+        st->st_uid = stat.uid;
+        st->st_gid = stat.gid;
+        st->st_size = stat.size;
+        st->st_blksize = stat.size;
+        st->st_blocks = stat.size / stat.block_size;
+        st->st_atim.tv_nsec = stat.atime % 1000000000UL;
+        st->st_atim.tv_sec = stat.atime / 1000000000UL;
+        st->st_mtim.tv_nsec = stat.mtime % 1000000000UL;
+        st->st_mtim.tv_sec = stat.mtime / 1000000000UL;
+        st->st_ctim.tv_nsec = stat.ctime % 1000000000UL;
+        st->st_ctim.tv_sec = stat.ctime / 1000000000UL;
+        st->st_dev = stat.dev;
+        st->st_rdev = stat.id;
+    }
     return error;
 }
 
@@ -112,17 +115,14 @@ typedef enum {
     FILE_OPEN_REGULAR = (1 << 7),
     FILE_OPEN_CLOEXEC = (1 << 8),
     FILE_OPEN_EXCL = (1 << 9),
+    FILE_OPEN_RDONLY = (1 << 10),
+    FILE_OPEN_WRONLY = (1 << 11),
 } SyscallOpenFlags;
 
-int _open(const char *name, int flags, ...) {
-    int mode = 0;
+int _open(const char *name, int flags, int mode) {
     SyscallOpenFlags sys_flags = 0;
     if ((flags & O_CREAT) != 0) {
         sys_flags |= FILE_OPEN_CREATE;
-        va_list args;
-        va_start(args, flags);
-        mode = va_arg(args, int);
-        va_end(args);
     }
     if ((flags & O_APPEND) != 0) {
         sys_flags |= FILE_OPEN_APPEND;
@@ -138,6 +138,13 @@ int _open(const char *name, int flags, ...) {
     }
     if ((flags & O_EXCL) != 0) {
         sys_flags |= FILE_OPEN_EXCL;
+    }
+    int rw_flags = (flags & 0b11) + 1;
+    if ((rw_flags & 0b10) == 0) {
+        sys_flags |= FILE_OPEN_RDONLY;
+    }
+    if ((rw_flags & 0b01) == 0) {
+        sys_flags |= FILE_OPEN_WRONLY;
     }
     return handleErrors(SYSCALL(SYSCALL_OPEN, (uintptr_t)name, sys_flags, mode));
 }
@@ -194,3 +201,16 @@ int nanosleep(struct timespec* time, struct timespec* rem) {
     }
 }
 
+int getdents(int fd, struct dirent* dp, int count) {
+    size_t written = SYSCALL(SYSCALL_READDIR, fd, (uintptr_t)dp, count);
+    int ret = handleErrors(written);
+    if (ret >= 0 && dp->d_ino == 0) {
+        dp->d_ino = 1;
+        *((char*)dp + ret) = 0;
+    }
+    return ret;
+}
+
+int chdir(const char* path) {
+    return handleErrors(SYSCALL(SYSCALL_CHDIR, (uintptr_t)path));
+}
