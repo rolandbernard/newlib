@@ -1,5 +1,6 @@
 
 #include <stddef.h>
+#include <errno.h>
 #include <sys/fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -11,8 +12,12 @@
 #include "syscalls.h"
 
 static inline uintptr_t handleErrors(uintptr_t error) {
-    // TODO: set errno
-    return (int)error < 0 ? -1 : error;
+    if ((int)error < 0) {
+        errno = -error;
+        return -1;
+    } else {
+        return error;
+    }
 }
 
 int _close(int file) {
@@ -165,8 +170,7 @@ int _stat(const char *file, struct stat *st) {
 }
 
 clock_t _times(struct tms *buf) {
-    // TODO
-    return -1;
+    return handleErrors(SYSCALL(SYSCALL_TIMES, (uintptr_t)buf));
 }
 
 int _unlink(const char *name) {
@@ -203,14 +207,14 @@ int nanosleep(struct timespec* time, struct timespec* rem) {
 
 int getdents(int fd, struct dirent* dp, int count) {
     size_t written = SYSCALL(SYSCALL_READDIR, fd, (uintptr_t)dp, count);
-    int ret = handleErrors(written);
-    if (ret >= 0 && dp->d_ino == 0) {
-        dp->d_ino = 1;
-        *((char*)dp + ret) = 0;
-    }
-    return ret;
+    return handleErrors(written);
 }
 
 int chdir(const char* path) {
     return handleErrors(SYSCALL(SYSCALL_CHDIR, (uintptr_t)path));
 }
+
+int pipe(int filedes[2]) {
+    return handleErrors(SYSCALL(SYSCALL_PIPE, (uintptr_t)filedes));
+}
+

@@ -40,6 +40,8 @@ typedef enum {
     SYSCALL_SETGID = 33,
     SYSCALL_CHDIR = 34,
     SYSCALL_GETCWD = 35,
+    SYSCALL_PIPE = 36,
+    SYSCALL_TIMES = 37,
 } Syscalls;
 
 static inline uintptr_t make_syscall(
