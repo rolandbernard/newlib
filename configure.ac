@@ -956,9 +956,6 @@ esac
 
 # Disable newlib and libgloss for various target OSes.
 case "${target}" in
-  *-*-someos*)
-    noconfigdirs="$noconfigdirs target-libgloss"
-    ;;
   alpha*-dec-osf*)
     noconfigdirs="$noconfigdirs target-newlib target-libgloss"
     ;;
