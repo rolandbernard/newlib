@@ -25,7 +25,7 @@ int _close(int file) {
 }
 
 int _execve(const char *name, char* const argv[], char* const env[]) {
-    return handleErrors(SYSCALL(SYSCALL_EXECVE, (uintptr_t)argv, (uintptr_t)env));
+    return handleErrors(SYSCALL(SYSCALL_EXECVE, (uintptr_t)name, (uintptr_t)argv, (uintptr_t)env));
 }
 
 int _fork() {
