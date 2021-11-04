@@ -2,6 +2,7 @@
 #define _SYSCALLS_H_
 
 #include <stdint.h>
+#include <errno.h>
 
 typedef enum {
     SYSCALL_PRINT = 0,
@@ -42,6 +43,8 @@ typedef enum {
     SYSCALL_GETCWD = 35,
     SYSCALL_PIPE = 36,
     SYSCALL_TIMES = 37,
+    SYSCALL_PAUSE = 38,
+    SYSCALL_ALARM = 39,
 } Syscalls;
 
 static inline uintptr_t make_syscall(
@@ -55,12 +58,22 @@ static inline uintptr_t make_syscall(
     register uintptr_t a5 asm("a5") = _a5;
     register uintptr_t a6 asm("a6") = _a6;
     register uintptr_t result asm("a0");
-    asm(
+    asm volatile(
         "ecall;"
         : "=r" (result)
         : "0" (kind), "r" (a1), "r" (a2), "r" (a3), "r" (a4), "r" (a5), "r" (a6)
+        : "memory"
     );
     return result;
+}
+
+static inline uintptr_t handleErrors(uintptr_t error) {
+    if ((int)error < 0) {
+        errno = -error;
+        return -1;
+    } else {
+        return error;
+    }
 }
 
 #define CONSOME(...)

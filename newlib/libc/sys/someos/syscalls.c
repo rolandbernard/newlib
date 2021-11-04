@@ -1,6 +1,5 @@
 
 #include <stddef.h>
-#include <errno.h>
 #include <sys/fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -10,15 +9,6 @@
 
 #include "sys/dirent.h"
 #include "syscalls.h"
-
-static inline uintptr_t handleErrors(uintptr_t error) {
-    if ((int)error < 0) {
-        errno = -error;
-        return -1;
-    } else {
-        return error;
-    }
-}
 
 int _close(int file) {
     return handleErrors(SYSCALL(SYSCALL_CLOSE, file));
@@ -76,15 +66,6 @@ int _getpid() {
 
 int getppid() {
     return handleErrors(SYSCALL(SYSCALL_GETPPID));
-}
-
-int _isatty(int file) {
-    // TODO
-    return -1;
-}
-
-int _kill(int pid, int sig) {
-    return handleErrors(SYSCALL(SYSCALL_KILL, pid, sig));
 }
 
 int _link(const char *old, const char *new) {
@@ -216,5 +197,45 @@ int chdir(const char* path) {
 
 int pipe(int filedes[2]) {
     return handleErrors(SYSCALL(SYSCALL_PIPE, (uintptr_t)filedes));
+}
+
+int gethostname(char* name, size_t size) {
+    // TODO
+    return -1;
+}
+
+int dup3(int src, int dst, int flags) {
+    return handleErrors(SYSCALL(SYSCALL_DUP, src, dst, flags));
+}
+
+int dup2(int src, int dst) {
+    return dup3(src, dst, 0);
+}
+
+int dup(int fildes) {
+    return dup2(fildes, -1);
+}
+
+int _isatty(int file) {
+    // TODO
+    return -1;
+}
+
+int ioctl(int fildes, int request, ...) {
+    // TODO
+    return -1;
+}
+
+int fcntl(int fildes, int request, ...) {
+    // TODO
+    return -1;
+}
+
+int pause() {
+    return handleErrors(SYSCALL(SYSCALL_PAUSE));
+}
+
+unsigned alarm(unsigned seconds) {
+    return handleErrors(SYSCALL(SYSCALL_ALARM, seconds));
 }
 

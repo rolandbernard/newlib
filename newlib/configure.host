@@ -444,6 +444,7 @@ case "${host}" in
 	sys_dir=someos
 	posix_dir=posix
 	unix_dir=unix
+	newlib_cflags="${newlib_cflags} -DSIGNAL_PROVIDED"
 	;;
   *-*-cygwin*)
 	posix_dir=posix

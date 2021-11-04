@@ -400,6 +400,10 @@ extern "C" {
 # define _POSIX_VERSION 199009L
 #endif
 
+#ifdef __someos__
+# define _POSIX_VERSION 199009L
+#endif
+
 #ifdef __CYGWIN__
 
 #if __POSIX_VISIBLE >= 200809
