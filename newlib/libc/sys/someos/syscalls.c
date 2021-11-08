@@ -90,21 +90,6 @@ off_t _lseek(int file, off_t ptr, int dir) {
     return handleErrors(SYSCALL(SYSCALL_SEEK, file, ptr, whence));
 }
 
-typedef enum {
-    FILE_OPEN_CREATE = (1 << 0),
-    FILE_OPEN_APPEND = (1 << 1),
-    FILE_OPEN_TRUNC = (1 << 2),
-    FILE_OPEN_DIRECTORY = (1 << 3),
-    FILE_OPEN_READ = (1 << 4),
-    FILE_OPEN_WRITE = (1 << 5),
-    FILE_OPEN_EXECUTE = (1 << 6),
-    FILE_OPEN_REGULAR = (1 << 7),
-    FILE_OPEN_CLOEXEC = (1 << 8),
-    FILE_OPEN_EXCL = (1 << 9),
-    FILE_OPEN_RDONLY = (1 << 10),
-    FILE_OPEN_WRONLY = (1 << 11),
-} SyscallOpenFlags;
-
 int _open(const char *name, int flags, int mode) {
     SyscallOpenFlags sys_flags = 0;
     if ((flags & O_CREAT) != 0) {
@@ -184,15 +169,6 @@ int nanosleep(struct timespec* time, struct timespec* rem) {
     } else {
         return 0;
     }
-}
-
-int getdents(int fd, struct dirent* dp, int count) {
-    size_t written = SYSCALL(SYSCALL_READDIR, fd, (uintptr_t)dp, count);
-    return handleErrors(written);
-}
-
-int chdir(const char* path) {
-    return handleErrors(SYSCALL(SYSCALL_CHDIR, (uintptr_t)path));
 }
 
 int pipe(int filedes[2]) {

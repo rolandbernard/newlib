@@ -18,6 +18,13 @@
 typedef void (*_sig_func_ptr) (int);
 typedef _sig_func_ptr __sighandler_t;
 
+struct sigaction {
+    __sighandler_t sa_handler;
+    sigset_t sa_mask;
+    int sa_flags;
+    void* sa_sigaction;
+};
+
 #define SIG_DFL ((void*)0)
 #define SIG_IGN ((void*)1)
 
@@ -28,7 +35,7 @@ typedef _sig_func_ptr __sighandler_t;
 #define SIGILL 4
 #define SIGTRAP 5
 #define SIGABRT 6
-#define SIGIOT SIGABRT,
+#define SIGIOT SIGABRT
 #define SIGBUS 7
 #define SIGEMT 8
 #define SIGFPE 9
@@ -41,7 +48,7 @@ typedef _sig_func_ptr __sighandler_t;
 #define SIGTERM 16
 #define SIGSTKFLT 17
 #define SIGCHLD 18
-#define SIGCLD SIGCHLD,
+#define SIGCLD SIGCHLD
 #define SIGCONT 19
 #define SIGSTOP 20
 #define SIGTSTP 21
@@ -54,23 +61,33 @@ typedef _sig_func_ptr __sighandler_t;
 #define SIGPROF 28
 #define SIGWINCH 29
 #define SIGIO 30
-#define SIGPOLL SIGIO,
+#define SIGPOLL SIGIO
 #define SIGPWR 31
-#define SIGINFO SIGPWR,
+#define SIGINFO SIGPWR
 #define SIGLOST 32
 #define SIGSYS 33
-#define SIGUNUSED SIGSYS,
-#define SIG_COUNT 34
+#define SIGUNUSED SIGSYS
 
-int kill(int, int);
-int sigaction(int, const struct sigaction*, struct sigaction*);
-int sigaddset(sigset_t*, const int);
-int sigdelset(sigset_t*, const int);
-int sigismember(const sigset_t*, int);
-int sigfillset(sigset_t*);
-int sigemptyset(sigset_t*);
-int sigpending(sigset_t*);
-int sigsuspend(const sigset_t*);
-int sigpause(int);
+#define _NSIG 34
+
+#define SIG_SETMASK 0
+#define SIG_BLOCK   1
+#define SIG_UNBLOCK 2
+
+int kill(pid_t pid, int sig);
+int sigaction(int signum, const struct sigaction* act, struct sigaction* oldact);
+int sigaddset(sigset_t* set, int signum);
+int sigdelset(sigset_t* set, int signum);
+int sigismember(const sigset_t* set, int signum);
+int sigfillset(sigset_t* set);
+int sigemptyset(sigset_t* set);
+int sigpending(sigset_t* set);
+int sigsuspend(const sigset_t* mask);
+int sigpause(int sigmask);
+int sigprocmask(int how, const sigset_t* set, sigset_t* oldset);
+sigset_t sigblock(sigset_t mask);
+sigset_t sigmask(int signum);
+sigset_t sigsetmask(sigset_t mask);
+sigset_t siggetmask();
 
 #endif
