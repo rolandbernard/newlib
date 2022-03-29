@@ -22,6 +22,7 @@ fi
 
 if test -n "${sys_dir}"; then
   case ${sys_dir} in
+	someos) AC_CONFIG_SUBDIRS(someos) ;;
 	a29khif) AC_CONFIG_SUBDIRS(a29khif) ;;
 	amdgcn) AC_CONFIG_SUBDIRS(amdgcn) ;;
 	arm) AC_CONFIG_SUBDIRS(arm) ;;

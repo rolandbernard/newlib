@@ -11810,9 +11810,11 @@ fi
 
 if test -n "${sys_dir}"; then
   case ${sys_dir} in
-	a29khif)
+	someos)
 
-subdirs="$subdirs a29khif"
+subdirs="$subdirs someos"
+ ;;
+	a29khif) subdirs="$subdirs a29khif"
  ;;
 	amdgcn) subdirs="$subdirs amdgcn"
  ;;
