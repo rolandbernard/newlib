@@ -402,6 +402,7 @@ extern "C" {
 
 #ifdef __someos__
 # define _POSIX_VERSION 199009L
+# define _POSIX_TIMERS
 #endif
 
 #ifdef __CYGWIN__
