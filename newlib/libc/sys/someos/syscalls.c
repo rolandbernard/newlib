@@ -160,7 +160,7 @@ int gettimeofday(struct timeval* __p, void* __tz) {
     return -1;
 }
 
-int nanosleep(struct timespec* time, struct timespec* rem) {
+int nanosleep(const struct timespec* time, struct timespec* rem) {
     size_t left = SYSCALL(SYSCALL_SLEEP, time->tv_sec * 1000000000UL + time->tv_nsec);
     rem->tv_sec = left / 1000000000UL;
     rem->tv_nsec = left % 1000000000UL;
@@ -213,5 +213,21 @@ int pause() {
 
 unsigned alarm(unsigned seconds) {
     return handleErrors(SYSCALL(SYSCALL_ALARM, seconds));
+}
+
+uid_t getuid() {
+    return handleErrors(SYSCALL(SYSCALL_GETUID));
+}
+
+gid_t getgid() {
+    return handleErrors(SYSCALL(SYSCALL_GETGID));
+}
+
+int setuid(uid_t uid) {
+    return handleErrors(SYSCALL(SYSCALL_SETUID, uid));
+}
+
+int setgid(gid_t gid) {
+    return handleErrors(SYSCALL(SYSCALL_SETGID, gid));
 }
 
