@@ -581,7 +581,7 @@ PACKAGE_STRING='newlib 4.1.0'
 PACKAGE_BUGREPORT=''
 PACKAGE_URL=''
 
-ac_unique_file="syscalls.c"
+ac_unique_file="misc.c"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 sys_dir

@@ -1,32 +1,203 @@
 
-#include "syscalls.h"
-
 #include <errno.h>
 #include <fcntl.h>
 #include <malloc.h>
 #include <stdio.h>
 #include <sys/dirent.h>
 #include <sys/stat.h>
+#include <unistd.h>
+
+#include "syscalls.h"
 
 #define MAX_PATH 1024
 
+typedef struct {
+    size_t id;
+    uint16_t mode;
+    size_t nlinks;
+    int uid;
+    int gid;
+    size_t size;
+    size_t block_size;
+    uint64_t atime;
+    uint64_t mtime;
+    uint64_t ctime;
+    size_t dev;
+} SyscallStat;
+
+int _fstat(int file, struct stat *st) {
+    volatile SyscallStat stat;
+    int error = handleErrors(SYSCALL(SYSCALL_STAT, file, (uintptr_t)&stat));
+    if (error == 0) {
+        st->st_ino = stat.id;
+        st->st_mode = stat.mode;
+        st->st_nlink = stat.nlinks;
+        st->st_uid = stat.uid;
+        st->st_gid = stat.gid;
+        st->st_size = stat.size;
+        st->st_blksize = stat.size;
+        st->st_blocks = stat.size / stat.block_size;
+        st->st_atim.tv_nsec = stat.atime % 1000000000UL;
+        st->st_atim.tv_sec = stat.atime / 1000000000UL;
+        st->st_mtim.tv_nsec = stat.mtime % 1000000000UL;
+        st->st_mtim.tv_sec = stat.mtime / 1000000000UL;
+        st->st_ctim.tv_nsec = stat.ctime % 1000000000UL;
+        st->st_ctim.tv_sec = stat.ctime / 1000000000UL;
+        st->st_dev = stat.dev;
+        st->st_rdev = stat.id;
+    }
+    return error;
+}
+
+int pipe(int filedes[2]) {
+    return handleErrors(SYSCALL(SYSCALL_PIPE, (uintptr_t)filedes));
+}
+
+int _isatty(int file) {
+    // TODO
+    return -1;
+}
+
+int ioctl(int fildes, int request, ...) {
+    // TODO
+    return -1;
+}
+
+int fcntl(int fildes, int request, ...) {
+    // TODO
+    return -1;
+}
+
+int _close(int file) {
+    return handleErrors(SYSCALL(SYSCALL_CLOSE, file));
+}
+
+int _link(const char *old, const char *new) {
+    return handleErrors(SYSCALL(SYSCALL_LINK, (uintptr_t)old, (uintptr_t)new));
+}
+
+typedef enum {
+    FILE_SEEK_CUR = 0,
+    FILE_SEEK_SET = 1,
+    FILE_SEEK_END = 2,
+} SyscallSeekWhence;
+
+off_t _lseek(int file, off_t ptr, int dir) {
+    SyscallSeekWhence whence = 0;
+    if (dir == SEEK_END) {
+        whence = FILE_SEEK_END;
+    } else if (dir == SEEK_SET) {
+        whence = FILE_SEEK_SET;
+    } else if (dir == SEEK_CUR) {
+        whence = FILE_SEEK_CUR;
+    }
+    return handleErrors(SYSCALL(SYSCALL_SEEK, file, ptr, whence));
+}
+
+static SyscallOpenFlags convertFlagsFor(int flags) {
+    SyscallOpenFlags sys_flags = 0;
+    if ((flags & O_CREAT) != 0) {
+        sys_flags |= FILE_OPEN_CREATE;
+    }
+    if ((flags & O_APPEND) != 0) {
+        sys_flags |= FILE_OPEN_APPEND;
+    }
+    if ((flags & O_TRUNC) != 0) {
+        sys_flags |= FILE_OPEN_TRUNC;
+    }
+    if ((flags & O_DIRECTORY) != 0) {
+        sys_flags |= FILE_OPEN_DIRECTORY;
+    }
+    if ((flags & O_CLOEXEC) != 0) {
+        sys_flags |= FILE_OPEN_CLOEXEC;
+    }
+    if ((flags & O_EXCL) != 0) {
+        sys_flags |= FILE_OPEN_EXCL;
+    }
+    int rw_flags = (flags & 0b11) + 1;
+    if ((rw_flags & 0b10) == 0) {
+        sys_flags |= FILE_OPEN_RDONLY;
+    }
+    if ((rw_flags & 0b01) == 0) {
+        sys_flags |= FILE_OPEN_WRONLY;
+    }
+    return sys_flags;
+}
+
+int _open(const char *name, int flags, int mode) {
+    return handleErrors(SYSCALL(SYSCALL_OPEN, (uintptr_t)name, convertFlagsFor(flags), mode));
+}
+
+ssize_t _read(int file, void* ptr, size_t len) {
+    return handleErrors(SYSCALL(SYSCALL_READ, file, (uintptr_t)ptr, len));
+}
+
+int _stat(const char *file, struct stat *st) {
+    int fd = open(file, 0);
+    int result = fstat(fd, st);
+    close(fd);
+    return result;
+}
+
+int _unlink(const char *name) {
+    return handleErrors(SYSCALL(SYSCALL_UNLINK, (uintptr_t)name));
+}
+
+ssize_t _write(int file, const void* ptr, size_t len) {
+    return handleErrors(SYSCALL(SYSCALL_WRITE, file, (uintptr_t)ptr, len));
+}
+
+int dup3(int src, int dst, int flags) {
+    return handleErrors(SYSCALL(SYSCALL_DUP, src, dst, convertFlagsFor(flags)));
+}
+
+int dup2(int src, int dst) {
+    return dup3(src, dst, 0);
+}
+
+int dup(int fildes) {
+    return dup2(fildes, -1);
+}
+
+int access(const char* fn, int flags) {
+    struct stat s;
+    if (stat(fn, &s) != 0) {
+        return -1;
+    }
+    if (
+        (flags & R_OK) != 0 && (s.st_mode & S_IREAD) == 0
+        || (flags & W_OK) != 0 && (s.st_mode & S_IWRITE) == 0
+        || (flags & X_OK) != 0 && (s.st_mode & S_IEXEC) == 0
+    ) {
+        errno = EPERM;
+        return -1;
+    }
+    return 0;
+}
+
 int mkdir(const char *pathname, mode_t mode) {
-    return handleErrors(SYSCALL(SYSCALL_OPEN, pathname, FILE_OPEN_CREATE | FILE_OPEN_EXCL | FILE_OPEN_DIRECTORY, mode));
+    return handleErrors(SYSCALL(SYSCALL_MKNOD, (uintptr_t)pathname, mode | S_IFDIR));
 }
 
 int chdir(const char* path) {
     return handleErrors(SYSCALL(SYSCALL_CHDIR, (uintptr_t)path));
 }
 
-char *getcwd(char *buf, size_t size) {
+char* getcwd(char *buf, size_t size) {
     if (buf == NULL) {
         buf = (char *) malloc(MAX_PATH);
     }
-    return handleErrors(SYSCALL(SYSCALL_GETCWD, buf, size));
+    int res = SYSCALL(SYSCALL_GETCWD, (uintptr_t)buf, size);
+    if (res < 0) {
+        errno = -res;
+        return NULL;
+    } else {
+        return buf;
+    }
 }
 
 int	mknod(const char *pathname, mode_t mode, dev_t dev) {
-    return handleErrors(SYSCALL(SYSCALL_MKNOD, pathname, mode, dev));
+    return handleErrors(SYSCALL(SYSCALL_MKNOD, (uintptr_t)pathname, mode, dev));
 }
 
 int	mkfifo(const char *pathname, mode_t mode) {
