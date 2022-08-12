@@ -148,11 +148,15 @@ ssize_t _write(int file, const void* ptr, size_t len) {
 }
 
 int dup3(int src, int dst, int flags) {
-    return handleErrors(SYSCALL(SYSCALL_DUP, src, dst, convertFlagsFor(flags)));
+    if (src == dst) {
+        errno = EINVAL;
+        return -1;
+    }
+    return handleErrors(SYSCALL(SYSCALL_DUP, src, dst, (flags & O_CLOEXEC) != 0 ? FILE_OPEN_CLOEXEC : 0));
 }
 
 int dup2(int src, int dst) {
-    return dup3(src, dst, 0);
+    return handleErrors(SYSCALL(SYSCALL_DUP, src, dst, 0));
 }
 
 int dup(int fildes) {
@@ -212,5 +216,48 @@ int getdents(int fd, struct dirent* dp, int count) {
 int chroot(const char *path) {
     // TODO?
     return chdir(path);
+}
+
+#define OPEN_DO_CLOSE(ACTION, FLAGS)    \
+    int fd = open(path, FLAGS);         \
+    if (fd < 0) {                       \
+        return -1;                      \
+    }                                   \
+    if (ACTION < 0) {                   \
+        close(fd);                      \
+        return -1;                      \
+    }                                   \
+    return close(fd);
+
+int	truncate(const char* path, off_t length) {
+    OPEN_DO_CLOSE(ftruncate(fd, length), O_WRONLY);
+}
+
+int	ftruncate(int fd, off_t length) {
+    return handleErrors(SYSCALL(SYSCALL_TRUNC, fd, length));
+}
+
+int	chmod(const char* path, mode_t mode) {
+    OPEN_DO_CLOSE(fchmod(fd, mode), O_WRONLY);
+}
+
+int fchmod(int fd, mode_t mode) {
+    return handleErrors(SYSCALL(SYSCALL_CHMOD, fd, mode));
+}
+
+int	chown(const char* path, uid_t owner, gid_t group) {
+    OPEN_DO_CLOSE(fchown(fd, owner, group), O_WRONLY);
+}
+
+int fchown(int fd, uid_t owner, gid_t group) {
+    return handleErrors(SYSCALL(SYSCALL_CHOWN, fd, owner, group));
+}
+
+int mount(const char* source, const char* target, const char* filesystemtype, unsigned long mountflags, const void* data) {
+    return handleErrors(SYSCALL(SYSCALL_MOUNT, (uintptr_t)source, (uintptr_t)target, (uintptr_t)filesystemtype, (uintptr_t)data));
+}
+
+int umount(const char* target) {
+    return handleErrors(SYSCALL(SYSCALL_UMOUNT, (uintptr_t)target));
 }
 
