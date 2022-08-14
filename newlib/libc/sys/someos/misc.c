@@ -1,8 +1,10 @@
 
+#include <grp.h>
 #include <stddef.h>
+#include <sys/mman.h>
 #include <sys/times.h>
 #include <sys/types.h>
-#include <sys/mman.h>
+#include <string.h>
 
 #include "syscalls.h"
 
@@ -18,13 +20,13 @@ clock_t _times(struct tms *buf) {
     return handleErrors(SYSCALL(SYSCALL_TIMES, (uintptr_t)buf));
 }
 
-int gettimeofday(struct timeval* __p, void* __tz) {
-    // TODO
+// TODO: Look at what hardware we have in the VM for this.
+int _gettimeofday(struct timeval* __p, void* __tz) {
     return -1;
 }
 
-int gethostname(char* name, size_t size) {
-    // TODO
-    return -1;
+int gethostname(char* name, size_t namelen) {
+    strncpy(name, "someos", namelen);
+    return 0;
 }
 

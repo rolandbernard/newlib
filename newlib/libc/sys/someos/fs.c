@@ -5,11 +5,20 @@
 #include <stdio.h>
 #include <sys/dirent.h>
 #include <sys/stat.h>
+#include <sys/select.h>
 #include <unistd.h>
 
 #include "syscalls.h"
 
 #define MAX_PATH 1024
+
+static mode_t current_umask = 0022;
+
+mode_t umask(mode_t mask) {
+    mode_t old = current_umask;
+    current_umask = mask & 0777;
+    return old;
+}
 
 typedef struct {
     size_t id;
@@ -53,18 +62,17 @@ int pipe(int filedes[2]) {
     return handleErrors(SYSCALL(SYSCALL_PIPE, (uintptr_t)filedes));
 }
 
+// TODO:
 int _isatty(int file) {
-    // TODO
     return -1;
 }
 
+// TODO: Implement fcntl and ioctl after reworking the vfs.
 int ioctl(int fildes, int request, ...) {
-    // TODO
     return -1;
 }
 
 int fcntl(int fildes, int request, ...) {
-    // TODO
     return -1;
 }
 
@@ -125,7 +133,7 @@ static SyscallOpenFlags convertFlagsFor(int flags) {
 }
 
 int _open(const char *name, int flags, int mode) {
-    return handleErrors(SYSCALL(SYSCALL_OPEN, (uintptr_t)name, convertFlagsFor(flags), mode));
+    return handleErrors(SYSCALL(SYSCALL_OPEN, (uintptr_t)name, convertFlagsFor(flags), mode & ~current_umask));
 }
 
 ssize_t _read(int file, void* ptr, size_t len) {
@@ -179,10 +187,6 @@ int access(const char* fn, int flags) {
     return 0;
 }
 
-int mkdir(const char *pathname, mode_t mode) {
-    return handleErrors(SYSCALL(SYSCALL_MKNOD, (uintptr_t)pathname, mode | S_IFDIR));
-}
-
 int chdir(const char* path) {
     return handleErrors(SYSCALL(SYSCALL_CHDIR, (uintptr_t)path));
 }
@@ -201,7 +205,11 @@ char* getcwd(char *buf, size_t size) {
 }
 
 int	mknod(const char *pathname, mode_t mode, dev_t dev) {
-    return handleErrors(SYSCALL(SYSCALL_MKNOD, (uintptr_t)pathname, mode, dev));
+    return handleErrors(SYSCALL(SYSCALL_MKNOD, (uintptr_t)pathname, mode & ~current_umask, dev));
+}
+
+int mkdir(const char *pathname, mode_t mode) {
+    return mknod(pathname, mode | S_IFDIR, 0);
 }
 
 int	mkfifo(const char *pathname, mode_t mode) {
@@ -213,8 +221,8 @@ int getdents(int fd, struct dirent* dp, int count) {
     return handleErrors(written);
 }
 
+// TODO: Implement this with the vfs rewrite.
 int chroot(const char *path) {
-    // TODO?
     return chdir(path);
 }
 
@@ -259,5 +267,10 @@ int mount(const char* source, const char* target, const char* filesystemtype, un
 
 int umount(const char* target) {
     return handleErrors(SYSCALL(SYSCALL_UMOUNT, (uintptr_t)target));
+}
+
+// TODO: Implement this after vfs rewrite.
+int select(int nfds, fd_set* readfs, fd_set* writefds, fd_set* errorfds, struct timeval* timeout) {
+    return -1;
 }
 
