@@ -21,17 +21,19 @@ mode_t umask(mode_t mask) {
 }
 
 typedef struct {
+    size_t dev;
     size_t id;
     uint16_t mode;
     size_t nlinks;
     int uid;
     int gid;
+    size_t rdev;
     size_t size;
     size_t block_size;
+    size_t blocks;
     uint64_t atime;
     uint64_t mtime;
     uint64_t ctime;
-    size_t dev;
 } SyscallStat;
 
 int _fstat(int file, struct stat *st) {
