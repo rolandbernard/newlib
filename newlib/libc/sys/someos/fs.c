@@ -144,6 +144,9 @@ ssize_t _read(int file, void* ptr, size_t len) {
 
 int _stat(const char *file, struct stat *st) {
     int fd = open(file, 0);
+    if (fd < 0) {
+        return -1;
+    }
     int result = fstat(fd, st);
     close(fd);
     return result;
