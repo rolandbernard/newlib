@@ -12,12 +12,8 @@
 
 #define MAX_PATH 1024
 
-static mode_t current_umask = 0022;
-
 mode_t umask(mode_t mask) {
-    mode_t old = current_umask;
-    current_umask = mask & 0777;
-    return old;
+    return handleErrors(SYSCALL(SYSCALL_UMASK, mask));
 }
 
 typedef struct {
@@ -135,7 +131,7 @@ static SyscallOpenFlags convertFlagsFor(int flags) {
 }
 
 int _open(const char *name, int flags, int mode) {
-    return handleErrors(SYSCALL(SYSCALL_OPEN, (uintptr_t)name, convertFlagsFor(flags), mode & ~current_umask));
+    return handleErrors(SYSCALL(SYSCALL_OPEN, (uintptr_t)name, convertFlagsFor(flags), mode));
 }
 
 ssize_t _read(int file, void* ptr, size_t len) {
@@ -210,15 +206,15 @@ char* getcwd(char *buf, size_t size) {
 }
 
 int	mknod(const char *pathname, mode_t mode, dev_t dev) {
-    return handleErrors(SYSCALL(SYSCALL_MKNOD, (uintptr_t)pathname, mode & ~current_umask, dev));
+    return handleErrors(SYSCALL(SYSCALL_MKNOD, (uintptr_t)pathname, mode, dev));
 }
 
 int mkdir(const char *pathname, mode_t mode) {
-    return mknod(pathname, mode | S_IFDIR, 0);
+    return mknod(pathname, (mode & 0777) | S_IFDIR, 0);
 }
 
 int	mkfifo(const char *pathname, mode_t mode) {
-    return mknod(pathname, mode | S_IFIFO, 0);
+    return mknod(pathname, (mode & 0777) | S_IFIFO, 0);
 }
 
 int getdents(int fd, struct dirent* dp, int count) {

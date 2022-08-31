@@ -5,7 +5,7 @@
 #include <errno.h>
 
 typedef enum {
-    SYSCALL_PRINT = 0,
+    SYSCALL_UNKNOWN = 0,
     SYSCALL_EXIT = 1,
     SYSCALL_YIELD = 2,
     SYSCALL_FORK = 3,
@@ -48,6 +48,7 @@ typedef enum {
     SYSCALL_SIGPENDING = 40,
     SYSCALL_SIGPROCMASK = 41,
     SYSCALL_MKNOD = 42,
+    SYSCALL_UMASK = 43,
 } Syscalls;
 
 static inline uintptr_t make_syscall(
