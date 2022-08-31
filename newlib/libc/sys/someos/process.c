@@ -50,7 +50,6 @@ unsigned alarm(unsigned seconds) {
     return handleErrors(SYSCALL(SYSCALL_ALARM, seconds));
 }
 
-// TODO: Add ruid/euid/suid distinction
 uid_t getuid() {
     return handleErrors(SYSCALL(SYSCALL_GETUID));
 }
@@ -68,30 +67,30 @@ int setgid(gid_t gid) {
 }
 
 uid_t geteuid() {
-    return getuid();
+    return handleErrors(SYSCALL(SYSCALL_GETEUID));
 }
 
 gid_t getegid() {
-    return getgid();
+    return handleErrors(SYSCALL(SYSCALL_GETEGID));
 }
 
 int seteuid(uid_t uid) {
-    return setuid(uid);
+    return handleErrors(SYSCALL(SYSCALL_SETEUID, uid));
 }
 
 int setegid(gid_t gid) {
-    return setgid(gid);
+    return handleErrors(SYSCALL(SYSCALL_SETEGID, gid));
 }
 
 int setreuid(uid_t ruid, uid_t euid) {
-    return setuid(ruid) == 0 && seteuid(euid) ? 0 : -1;
+    return handleErrors(SYSCALL(SYSCALL_SETREUID, ruid, euid));
 }
 
 int setregid(gid_t rgid, gid_t egid) {
-    return setgid(rgid) == 0 && setegid(egid) ? 0 : -1;
+    return handleErrors(SYSCALL(SYSCALL_SETREGID, rgid, egid));
 }
 
-// TODO: Figure out what the following are supposed to do:
+// TODO: Figure out what the following is supposed to do
 long sysconf(int name) {
     return -1;
 }
