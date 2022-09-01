@@ -92,56 +92,12 @@ int _link(const char *old, const char *new) {
     return handleErrors(SYSCALL(SYSCALL_LINK, (uintptr_t)old, (uintptr_t)new));
 }
 
-typedef enum {
-    FILE_SEEK_CUR = 0,
-    FILE_SEEK_SET = 1,
-    FILE_SEEK_END = 2,
-} SyscallSeekWhence;
-
 off_t _lseek(int file, off_t ptr, int dir) {
-    SyscallSeekWhence whence = 0;
-    if (dir == SEEK_END) {
-        whence = FILE_SEEK_END;
-    } else if (dir == SEEK_SET) {
-        whence = FILE_SEEK_SET;
-    } else if (dir == SEEK_CUR) {
-        whence = FILE_SEEK_CUR;
-    }
-    return handleErrors(SYSCALL(SYSCALL_SEEK, file, ptr, whence));
-}
-
-static SyscallOpenFlags convertFlagsFor(int flags) {
-    SyscallOpenFlags sys_flags = 0;
-    if ((flags & O_CREAT) != 0) {
-        sys_flags |= FILE_OPEN_CREATE;
-    }
-    if ((flags & O_APPEND) != 0) {
-        sys_flags |= FILE_OPEN_APPEND;
-    }
-    if ((flags & O_TRUNC) != 0) {
-        sys_flags |= FILE_OPEN_TRUNC;
-    }
-    if ((flags & O_DIRECTORY) != 0) {
-        sys_flags |= FILE_OPEN_DIRECTORY;
-    }
-    if ((flags & O_CLOEXEC) != 0) {
-        sys_flags |= FILE_OPEN_CLOEXEC;
-    }
-    if ((flags & O_EXCL) != 0) {
-        sys_flags |= FILE_OPEN_EXCL;
-    }
-    int rw_flags = (flags & 0b11) + 1;
-    if ((rw_flags & 0b10) == 0) {
-        sys_flags |= FILE_OPEN_RDONLY;
-    }
-    if ((rw_flags & 0b01) == 0) {
-        sys_flags |= FILE_OPEN_WRONLY;
-    }
-    return sys_flags;
+    return handleErrors(SYSCALL(SYSCALL_SEEK, file, ptr, dir));
 }
 
 int _open(const char *name, int flags, int mode) {
-    return handleErrors(SYSCALL(SYSCALL_OPEN, (uintptr_t)name, convertFlagsFor(flags), mode));
+    return handleErrors(SYSCALL(SYSCALL_OPEN, (uintptr_t)name, flags, mode));
 }
 
 ssize_t _read(int file, void* ptr, size_t len) {
@@ -171,7 +127,7 @@ int dup3(int src, int dst, int flags) {
         errno = EINVAL;
         return -1;
     }
-    return handleErrors(SYSCALL(SYSCALL_DUP, src, dst, (flags & O_CLOEXEC) != 0 ? FILE_OPEN_CLOEXEC : 0));
+    return handleErrors(SYSCALL(SYSCALL_DUP, src, dst, flags));
 }
 
 int dup2(int src, int dst) {
