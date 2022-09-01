@@ -2,10 +2,11 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <malloc.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <sys/dirent.h>
-#include <sys/stat.h>
 #include <sys/select.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "syscalls.h"
@@ -61,7 +62,7 @@ int pipe(int filedes[2]) {
 }
 
 int _isatty(int file) {
-    return handleErrors(SYSCALL(SYSCALL_ISATTY, file));
+    return 1 + handleErrors(SYSCALL(SYSCALL_ISATTY, file));
 }
 
 int ioctl(int fildes, int request, ...) {
