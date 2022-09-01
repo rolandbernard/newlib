@@ -90,8 +90,8 @@ int setregid(gid_t rgid, gid_t egid) {
     return handleErrors(SYSCALL(SYSCALL_SETREGID, rgid, egid));
 }
 
-// TODO: Figure out what the following is supposed to do
 long sysconf(int name) {
+	errno = ENOSYS;
     return -1;
 }
 

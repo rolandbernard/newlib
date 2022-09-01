@@ -55,6 +55,9 @@ typedef enum {
     SYSCALL_SETEGID = 47,
     SYSCALL_SETREUID = 48,
     SYSCALL_SETREGID = 49,
+    SYSCALL_FCNTL = 50,
+    SYSCALL_IOCTL = 51,
+    SYSCALL_ISATTY = 52,
 } Syscalls;
 
 static inline uintptr_t make_syscall(

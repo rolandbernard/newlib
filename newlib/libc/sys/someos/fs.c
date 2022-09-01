@@ -60,18 +60,27 @@ int pipe(int filedes[2]) {
     return handleErrors(SYSCALL(SYSCALL_PIPE, (uintptr_t)filedes));
 }
 
-// TODO:
 int _isatty(int file) {
-    return -1;
+    return handleErrors(SYSCALL(SYSCALL_ISATTY, file));
 }
 
-// TODO: Implement fcntl and ioctl after reworking the vfs.
 int ioctl(int fildes, int request, ...) {
-    return -1;
+    va_list args;
+    va_start(args, request);
+    void* arg = va_arg(args, void*);
+    va_end(args);
+    return handleErrors(SYSCALL(SYSCALL_IOCTL, fildes, request, (uintptr_t)arg));
 }
 
 int fcntl(int fildes, int request, ...) {
-    return -1;
+    int arg = 0;
+    if ((request == F_DUPFD) || (request == F_SETFD) || (request == F_SETFL)) {
+        va_list args;
+        va_start(args, request);
+        arg = va_arg(args, int);
+        va_end(args);
+    }
+    return handleErrors(SYSCALL(SYSCALL_FCNTL, fildes, request, arg));
 }
 
 int _close(int file) {
@@ -222,7 +231,7 @@ int getdents(int fd, struct dirent* dp, int count) {
     return handleErrors(written);
 }
 
-// TODO: Implement this with the vfs rewrite.
+// TODO: Implement this after vfs rewrite.
 int chroot(const char *path) {
     return chdir(path);
 }
