@@ -58,6 +58,7 @@ typedef enum {
     SYSCALL_FCNTL = 50,
     SYSCALL_IOCTL = 51,
     SYSCALL_ISATTY = 52,
+    SYSCALL_NANOSECONDS = 53,
 } Syscalls;
 
 static inline uintptr_t make_syscall(

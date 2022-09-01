@@ -20,9 +20,16 @@ clock_t _times(struct tms *buf) {
     return handleErrors(SYSCALL(SYSCALL_TIMES, (uintptr_t)buf));
 }
 
-// TODO: Look at what hardware we have in the VM for this.
-int _gettimeofday(struct timeval* __p, void* __tz) {
-    return -1;
+int _gettimeofday(struct timeval* p, void* tz) {
+    uint64_t nanos = handleErrors(SYSCALL(SYSCALL_NANOSECONDS));
+    if (nanos == -1) {
+        return -1;
+    } else {
+        nanos %= 24 * 60 * 60 * 1000000000L;
+        p->tv_usec = nanos / 1000 % 1000000;
+        p->tv_sec = nanos / 1000000000;
+        return 0;
+    }
 }
 
 int gethostname(char* name, size_t namelen) {
