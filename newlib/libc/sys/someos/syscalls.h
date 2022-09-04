@@ -82,7 +82,7 @@ static inline uintptr_t make_syscall(
 }
 
 static inline uintptr_t handleErrors(uintptr_t error) {
-    if ((int)error < 0 && (int)error >= -35) {
+    if ((int)error < 0 && (int)error >= -256) {
         errno = -error;
         return -1;
     } else {

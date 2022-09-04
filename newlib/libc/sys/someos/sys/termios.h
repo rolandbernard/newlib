@@ -1,14 +1,6 @@
 #ifndef _SYS_TERMIOS_H
 #define _SYS_TERMIOS_H
 
-#define _XCGETA (('x'<<8)|1)
-#define _XCSETA (('x'<<8)|2)
-#define _XCSETAW (('x'<<8)|3)
-#define _XCSETAF (('x'<<8)|4)
-#define _TCSBRK (('T'<<8)|5)
-#define _TCFLSH (('T'<<8)|7)
-#define _TCXONC (('T'<<8)|6)
-
 #define TCOOFF 0
 #define TCOON 1
 #define TCIOFF 2
@@ -59,22 +51,28 @@
 #define ECHOK 0000040
 #define ECHONL 0000100
 #define ICANON 0000002
-#define IEXTEN 0000400 /* anybody know *what* this does?! */
+#define IEXTEN 0000400
 #define ISIG 0000001
 #define NOFLSH 0000200
 #define TOSTOP 0001000
 
-#define VEOF 4 /* also VMIN -- thanks, AT&T */
-#define VEOL 5 /* also VTIME -- thanks again */
-#define VERASE 2
 #define VINTR 0
-#define VKILL 3
-#define VMIN 4 /* also VEOF */
 #define VQUIT 1
+#define VERASE 2
+#define VKILL 3
+#define VEOF 4
+#define VTIME 5
+#define VMIN 6
+#define VSWTC 7
+#define VSTART 8
+#define VSTOP 9
 #define VSUSP 10
-#define VTIME 5 /* also VEOL */
-#define VSTART 11
-#define VSTOP 12
+#define VEOL 11
+#define VREPRINT 12
+#define VDISCARD 13
+#define VWERASE 14
+#define VLNEXT 15
+#define VEOL2 16
 
 #define B0 000000
 #define B50 000001

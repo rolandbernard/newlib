@@ -1,14 +1,14 @@
 
 #include <errno.h>
-#include <sys/types.h>
-#include <sys/termios.h>
 #include <sys/ioctl.h>
+#include <sys/termios.h>
+#include <sys/types.h>
 
-int tcgetattr(int fd,struct termios *termios_p) {
+int tcgetattr(int fd, struct termios* termios_p) {
     return ioctl(fd, TCGETS, termios_p);
 }
 
-int tcsetattr(int fd,int optional_actions,const struct termios *termios_p) {
+int tcsetattr(int fd, int optional_actions, const struct termios* termios_p) {
     int cmd;
     switch (optional_actions) {
         case TCSANOW:
@@ -29,8 +29,9 @@ int tcsetattr(int fd,int optional_actions,const struct termios *termios_p) {
 
 pid_t tcgetpgrp(int fd) {
     int p;
-    if (ioctl(fd, TIOCGPGRP, &p) < 0)
+    if (ioctl(fd, TIOCGPGRP, &p) < 0) {
         return (pid_t)-1;
+    }
     return (pid_t)p;
 }
 

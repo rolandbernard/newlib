@@ -9,6 +9,7 @@
 #define TIOCSPGRP   0x5410
 #define TCXONC      0x540A
 #define TCFLSH      0x540B
+#define FIONREAD    0x541B
 
 int ioctl(int fd,int request,...);
 
