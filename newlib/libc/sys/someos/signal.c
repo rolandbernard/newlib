@@ -30,6 +30,7 @@ __sighandler_t signal(int signal, __sighandler_t handler) {
     sigaction.restorer = restorer;
     asm volatile ("" : : "r"(&sigaction) : "memory");
     int ret = handleErrors(SYSCALL(SYSCALL_SIGACTION, signal, (uintptr_t)&sigaction, (uintptr_t)&sigaction));
+    asm volatile ("" : : "r"(&sigaction) : "memory");
     if (ret == -1) {
         return (void*)(uintptr_t)ret;
     } else {
@@ -41,7 +42,7 @@ int sigaction(int signal, const struct sigaction* new, struct sigaction* old) {
     volatile SignalAction sigaction;
     int ret;
     if (new == NULL) {
-        ret = handleErrors(SYSCALL(SYSCALL_SIGACTION, signal, (uintptr_t)&sigaction, (uintptr_t)&sigaction));
+        ret = handleErrors(SYSCALL(SYSCALL_SIGACTION, signal, 0, old != NULL ? (uintptr_t)&sigaction : 0));
     } else {
         sigaction.handler = new->sa_handler;
         sigaction.mask = new->sa_mask;
@@ -49,7 +50,8 @@ int sigaction(int signal, const struct sigaction* new, struct sigaction* old) {
         sigaction.sigaction = new->sa_sigaction;
         sigaction.restorer = restorer;
         asm volatile ("" : : "r"(&sigaction) : "memory");
-        ret = handleErrors(SYSCALL(SYSCALL_SIGACTION, signal, (uintptr_t)&sigaction, (uintptr_t)&sigaction));
+        ret = handleErrors(SYSCALL(SYSCALL_SIGACTION, signal, (uintptr_t)&sigaction, old != NULL ? (uintptr_t)&sigaction : 0));
+        asm volatile ("" : : "r"(&sigaction) : "memory");
     }
     if (old != NULL) {
         old->sa_handler = sigaction.handler;

@@ -10,12 +10,11 @@
 #define TCOFLUSH 1
 #define TCIOFLUSH 2
 
-#define NCCS 13
+#define TCSANOW 0
+#define TCSADRAIN 1
+#define TCSAFLUSH 2
 
-#define TCSAFLUSH _XCSETAF
-#define TCSANOW _XCSETA
-#define TCSADRAIN _XCSETAW
-#define TCSADFLUSH _XCSETAF
+#define NCCS 13
 
 #define IGNBRK 000001
 #define BRKINT 000002
