@@ -24,11 +24,11 @@ int getppid() {
 }
 
 int waitpid(int pid, int* status, int flags) {
-    return handleErrors(SYSCALL(SYSCALL_WAIT, pid, (uintptr_t)status));
+    return handleErrors(SYSCALL(SYSCALL_WAIT, pid, (uintptr_t)status, flags));
 }
 
 int _wait(int* status) {
-    return waitpid(0, status, 0);
+    return waitpid(-1, status, 0);
 }
 
 int nanosleep(const struct timespec* time, struct timespec* rem) {
@@ -88,6 +88,34 @@ int setreuid(uid_t ruid, uid_t euid) {
 
 int setregid(gid_t rgid, gid_t egid) {
     return handleErrors(SYSCALL(SYSCALL_SETREGID, rgid, egid));
+}
+
+int getpgid(pid_t pid) {
+    return handleErrors(SYSCALL(SYSCALL_GETPGID, pid));
+}
+
+int setpgid(pid_t pid, pid_t pgid) {
+    return handleErrors(SYSCALL(SYSCALL_SETPGID, pid, pgid));
+}
+
+int getsid(pid_t pid) {
+    return handleErrors(SYSCALL(SYSCALL_GETSID, pid));
+}
+
+int setsid() {
+    return handleErrors(SYSCALL(SYSCALL_SETSID));
+}
+
+int setpgrp() {
+    if (setpgid(0, 0) == -1) {
+        return -1;
+    } else {
+        return getpgrp();
+    }
+}
+
+int getpgrp() {
+    return getpgid(0);
 }
 
 long sysconf(int name) {

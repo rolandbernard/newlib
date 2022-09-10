@@ -59,6 +59,10 @@ typedef enum {
     SYSCALL_IOCTL = 51,
     SYSCALL_ISATTY = 52,
     SYSCALL_NANOSECONDS = 53,
+    SYSCALL_SETSID = 54,
+    SYSCALL_GETSID = 55,
+    SYSCALL_SETPGID = 56,
+    SYSCALL_GETPGID = 57,
 } Syscalls;
 
 static inline uintptr_t make_syscall(
@@ -73,7 +77,7 @@ static inline uintptr_t make_syscall(
     register uintptr_t a6 asm("a6") = _a6;
     register uintptr_t result asm("a0");
     asm volatile(
-        "ecall;"
+        "ecall"
         : "=r" (result)
         : "0" (kind), "r" (a1), "r" (a2), "r" (a3), "r" (a4), "r" (a5), "r" (a6)
         : "memory"
