@@ -188,7 +188,6 @@ int getdents(int fd, struct dirent* dp, int count) {
     return handleErrors(written);
 }
 
-// TODO: Implement this after vfs rewrite.
 int chroot(const char *path) {
     return chdir(path);
 }

@@ -14,7 +14,7 @@
 #define TCSADRAIN 1
 #define TCSAFLUSH 2
 
-#define NCCS 13
+#define NCCS 32
 
 #define IGNBRK 000001
 #define BRKINT 000002
