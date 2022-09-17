@@ -64,6 +64,7 @@ typedef enum {
     SYSCALL_SETPGID = 56,
     SYSCALL_GETPGID = 57,
     SYSCALL_SET_NANOSECONDS = 58,
+    SYSCALL_SELECT = 59,
 } Syscalls;
 
 static inline uintptr_t make_syscall(

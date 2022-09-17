@@ -32,13 +32,16 @@ int _wait(int* status) {
 }
 
 int nanosleep(const struct timespec* time, struct timespec* rem) {
-    size_t left = SYSCALL(SYSCALL_SLEEP, time->tv_sec * 1000000000UL + time->tv_nsec);
-    rem->tv_sec = left / 1000000000UL;
-    rem->tv_nsec = left % 1000000000UL;
-    if ((int)left < 0) {
+    size_t left = handleErrors(SYSCALL(SYSCALL_SLEEP, time->tv_sec * 1000000000UL + time->tv_nsec));
+    if (left > 0) {
+        if (rem != NULL) {
+            rem->tv_sec = left / 1000000000UL;
+            rem->tv_nsec = left % 1000000000UL;
+        }
+        errno = EINTR;
         return -1;
     } else {
-        return 0;
+        return left;
     }
 }
 

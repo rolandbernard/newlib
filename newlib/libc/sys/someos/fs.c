@@ -235,8 +235,8 @@ int umount(const char* target) {
     return handleErrors(SYSCALL(SYSCALL_UMOUNT, (uintptr_t)target));
 }
 
-// TODO: Implement this after vfs rewrite.
 int select(int nfds, fd_set* readfs, fd_set* writefds, fd_set* errorfds, struct timeval* timeout) {
-    return -1;
+    uint64_t nanos = timeout == NULL ? ~0UL : timeout->tv_sec * 1000000000UL + timeout->tv_usec * 1000UL;
+    return handleErrors(SYSCALL(SYSCALL_SELECT, nfds, (uintptr_t)readfs, (uintptr_t)writefds, (uintptr_t)errorfds, nanos));
 }
 
