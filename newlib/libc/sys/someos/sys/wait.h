@@ -19,5 +19,5 @@ pid_t wait(int *);
 
 pid_t waitpid(int, int *, int);
 
-#endif /* _SYS_WAIT_H */
+#endif
 

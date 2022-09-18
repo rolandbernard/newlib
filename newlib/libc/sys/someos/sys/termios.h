@@ -107,12 +107,11 @@ struct termios {
 };
 
 #ifndef _NO_MACROS
-
 #define cfgetospeed(tp) ((tp)->c_ospeed)
 #define cfgetispeed(tp) ((tp)->c_ispeed)
 #define cfsetospeed(tp,s) (((tp)->c_ospeed = (s)), 0)
 #define cfsetispeed(tp,s) (((tp)->c_ispeed = (s)), 0)
 #define tcdrain(fd)  _ioctl (fd, _TCSBRK, 1)
-#endif /* _NO_MACROS */
+#endif
 
-#endif /* _SYS_TERMIOS_H */
+#endif

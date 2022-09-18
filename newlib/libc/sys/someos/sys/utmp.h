@@ -1,10 +1,9 @@
-#ifndef _UTMP_H
-#define _UTMP_H
+#ifndef _SYS_UTMP_H
+#define _SYS_UTMP_H
 
 #include <sys/types.h>
 
 #define UTMP_FILE "/etc/utmp"
-#define WTMP_FILE "/etc/wtmp"
 
 struct utmp {
     char ut_user[8];
@@ -19,8 +18,6 @@ struct utmp {
     time_t ut_time;
 };
 
-/* Definitions for ut_type fields */
-
 #define EMPTY 0
 #define RUN_LVL 1
 #define BOOT_TIME 2
@@ -33,11 +30,4 @@ struct utmp {
 #define ACCOUNTING 9
 #define UTMAXTYPE ACCOUNTING
 
-#define RUNLVL_MSG "run-level %c"
-#define BOOT_MSG "system boot"
-#define OTIME_MSG "old time"
-#define NTIME_MSG "new time"
-
-#endif /* _UTMP_H */
-
-
+#endif

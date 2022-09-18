@@ -2,7 +2,7 @@
 #include <grp.h>
 #include <stddef.h>
 #include <string.h>
-#include <sys/mman.h>
+#include <sys/mprotect.h>
 #include <sys/times.h>
 #include <sys/types.h>
 
