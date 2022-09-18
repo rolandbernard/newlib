@@ -73,7 +73,7 @@ int ioctl(int fildes, int request, ...) {
     return handleErrors(SYSCALL(SYSCALL_IOCTL, fildes, request, (uintptr_t)arg));
 }
 
-int fcntl(int fildes, int request, ...) {
+int _fcntl(int fildes, int request, ...) {
     int arg = 0;
     if ((request == F_DUPFD) || (request == F_SETFD) || (request == F_SETFL)) {
         va_list args;
