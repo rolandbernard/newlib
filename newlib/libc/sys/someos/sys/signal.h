@@ -1,74 +1,62 @@
 #ifndef _SYS_SIGNAL_H
 #define _SYS_SIGNAL_H
-#define _SIGNAL_H
 
 #include "_ansi.h"
+#include <stdint.h>
+#include <sys/_sigset.h>
+#include <sys/_timespec.h>
 #include <sys/cdefs.h>
 #include <sys/features.h>
 #include <sys/types.h>
-#include <sys/_sigset.h>
-#include <sys/_timespec.h>
-#include <stdint.h>
 
-#undef NSIG
-#define NSIG _NSIG
-#undef sigset_t
-#define sigset_t __sigset_t
-
-typedef void (*_sig_func_ptr) (int);
-typedef _sig_func_ptr __sighandler_t;
-
-struct sigaction {
-    __sighandler_t sa_handler;
-    sigset_t sa_mask;
-    int sa_flags;
-    void* sa_sigaction;
+union sigval {
+    int sival_int;
+    void* sival_ptr;
 };
 
-#define SIG_DFL ((void*)0)
-#define SIG_IGN ((void*)1)
+struct sigevent {
+    int sigev_notify;
+    int sigev_signo;
+    union sigval sigev_value;
+};
 
-#define SIGNONE 0
-#define SIGHUP 1
-#define SIGINT 2
-#define SIGQUIT 3
-#define SIGILL 4
-#define SIGTRAP 5
-#define SIGABRT 6
-#define SIGIOT SIGABRT
-#define SIGBUS 7
-#define SIGEMT 8
-#define SIGFPE 9
-#define SIGKILL 10
-#define SIGUSR1 11
-#define SIGSEGV 12
-#define SIGUSR2 13
-#define SIGPIPE 14
-#define SIGALRM 15
-#define SIGTERM 16
-#define SIGSTKFLT 17
-#define SIGCHLD 18
-#define SIGCLD SIGCHLD
-#define SIGCONT 19
-#define SIGSTOP 20
-#define SIGTSTP 21
-#define SIGTTIN 22
-#define SIGTTOU 23
-#define SIGURG 24
-#define SIGXCPU 25
-#define SIGXFSZ 26
-#define SIGVTALRM 27
-#define SIGPROF 28
-#define SIGWINCH 29
-#define SIGIO 30
-#define SIGPOLL SIGIO
-#define SIGPWR 31
-#define SIGINFO SIGPWR
-#define SIGLOST 32
-#define SIGSYS 33
-#define SIGUNUSED SIGSYS
+#define SI_USER 1
+#define SI_QUEUE 2
+#define SI_TIMER 3
+#define SI_ASYNCIO 4
+#define SI_MESGQ 5
 
-#define _NSIG 34
+typedef struct {
+    int si_signo;
+    int si_code;
+    union sigval si_value;
+} siginfo_t;
+
+#define SA_NOCLDSTOP 0x01
+#define SA_ONSTACK 0x02
+#define SA_RESETHAND 0x04
+#define SA_RESTART 0x08
+#define SA_SIGINFO 0x10
+#define SA_NOCLDWAIT 0x20
+#define SA_NODEFER 0x40
+
+typedef void (*_sig_func_ptr)(int);
+
+struct sigaction {
+    union {
+        _sig_func_ptr sa_handler;
+        void (*sa_sigaction)(int, siginfo_t*, void*);
+    };
+    sigset_t sa_mask;
+    int sa_flags;
+    void (*sa_restorer)();
+};
+
+typedef struct sigaltstack {
+    void* ss_sp;
+    int ss_flags;
+    size_t ss_size;
+} stack_t;
 
 #define SIG_SETMASK 0
 #define SIG_BLOCK   1
@@ -90,4 +78,41 @@ sigset_t sigmask(int signum);
 sigset_t sigsetmask(sigset_t mask);
 sigset_t siggetmask();
 
+#define SIGHUP 1        /* hangup */
+#define SIGINT 2        /* interrupt */
+#define SIGQUIT 3       /* quit */
+#define SIGILL 4        /* illegal instruction (not reset when caught) */
+#define SIGTRAP 5       /* trace trap (not reset when caught) */
+#define SIGIOT 6        /* IOT instruction */
+#define SIGABRT 6       /* used by abort, replace SIGIOT in the future */
+#define SIGEMT 7        /* EMT instruction */
+#define SIGFPE 8        /* floating point exception */
+#define SIGKILL 9       /* kill (cannot be caught or ignored) */
+#define SIGBUS 10       /* bus error */
+#define SIGSEGV 11      /* segmentation violation */
+#define SIGSYS 12       /* bad argument to system call */
+#define SIGPIPE 13      /* write on a pipe with no one to read it */
+#define SIGALRM 14      /* alarm clock */
+#define SIGTERM 15      /* software termination signal from kill */
+#define SIGURG 16       /* urgent condition on IO channel */
+#define SIGSTOP 17      /* sendable stop signal not from tty */
+#define SIGTSTP 18      /* stop signal from tty */
+#define SIGCONT 19      /* continue a stopped process */
+#define SIGCHLD 20      /* to parent on child stop or exit */
+#define SIGCLD 20       /* System V name for SIGCHLD */
+#define SIGTTIN 21      /* to readers pgrp upon background tty read */
+#define SIGTTOU 22      /* like TTIN for output if (tp->t_local&LTOSTOP) */
+#define SIGIO 23        /* input/output possible signal */
+#define SIGPOLL SIGIO   /* System V name for SIGIO */
+#define SIGXCPU 24      /* exceeded CPU time limit */
+#define SIGXFSZ 25      /* exceeded file size limit */
+#define SIGVTALRM 26    /* virtual time alarm */
+#define SIGPROF 27      /* profiling time alarm */
+#define SIGWINCH 28     /* window changed */
+#define SIGLOST 29      /* resource lost (eg, record-lock lost) */
+#define SIGUSR1 30      /* user defined signal 1 */
+#define SIGUSR2 31      /* user defined signal 2 */
+#define NSIG 32         /* signal 0 implied */
+
+#include <signal.h>
 #endif
