@@ -37,22 +37,22 @@ int _fstat(int file, struct stat *st) {
     volatile SyscallStat stat;
     int error = handleErrors(SYSCALL(SYSCALL_STAT, file, (uintptr_t)&stat));
     if (error == 0) {
+        st->st_dev = stat.dev;
         st->st_ino = stat.id;
         st->st_mode = stat.mode;
         st->st_nlink = stat.nlinks;
         st->st_uid = stat.uid;
         st->st_gid = stat.gid;
+        st->st_rdev = stat.rdev;
         st->st_size = stat.size;
-        st->st_blksize = stat.size;
-        st->st_blocks = stat.size / stat.block_size;
+        st->st_blksize = stat.block_size;
+        st->st_blocks = stat.blocks;
         st->st_atim.tv_nsec = stat.atime % 1000000000UL;
         st->st_atim.tv_sec = stat.atime / 1000000000UL;
         st->st_mtim.tv_nsec = stat.mtime % 1000000000UL;
         st->st_mtim.tv_sec = stat.mtime / 1000000000UL;
         st->st_ctim.tv_nsec = stat.ctime % 1000000000UL;
         st->st_ctim.tv_sec = stat.ctime / 1000000000UL;
-        st->st_dev = stat.dev;
-        st->st_rdev = stat.id;
     }
     return error;
 }
