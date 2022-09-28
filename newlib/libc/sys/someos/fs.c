@@ -175,6 +175,10 @@ int	mknod(const char *pathname, mode_t mode, dev_t dev) {
     return handleErrors(SYSCALL(SYSCALL_MKNOD, (uintptr_t)pathname, mode, dev));
 }
 
+int rmdir(const char *pathname) {
+    return _unlink(pathname);
+}
+
 int mkdir(const char *pathname, mode_t mode) {
     return mknod(pathname, (mode & 0777) | S_IFDIR, 0);
 }
