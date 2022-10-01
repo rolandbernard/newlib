@@ -13,11 +13,11 @@ void* _sbrk(ptrdiff_t incr) {
 }
 
 int mprotect(void *addr, size_t len, int prot) {
-    return handleErrors(SYSCALL(SYSCALL_PROTECT, (uintptr_t)addr, len, prot));
+    return handleErrors(SYSCALL(SYSCALL_PROTECT, addr, len, prot));
 }
 
 clock_t _times(struct tms *buf) {
-    return handleErrors(SYSCALL(SYSCALL_TIMES, (uintptr_t)buf));
+    return handleErrors(SYSCALL(SYSCALL_TIMES, buf));
 }
 
 int _gettimeofday(struct timeval* p, void* tz) {

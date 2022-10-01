@@ -8,7 +8,7 @@
 #include "syscalls.h"
 
 int _execve(const char *name, char* const argv[], char* const env[]) {
-    return handleErrors(SYSCALL(SYSCALL_EXECVE, (uintptr_t)name, (uintptr_t)argv, (uintptr_t)env));
+    return handleErrors(SYSCALL(SYSCALL_EXECVE, name, argv, env));
 }
 
 int _fork() {
@@ -24,7 +24,7 @@ int getppid() {
 }
 
 int waitpid(int pid, int* status, int flags) {
-    return handleErrors(SYSCALL(SYSCALL_WAIT, pid, (uintptr_t)status, flags));
+    return handleErrors(SYSCALL(SYSCALL_WAIT, pid, status, flags));
 }
 
 int _wait(int* status) {

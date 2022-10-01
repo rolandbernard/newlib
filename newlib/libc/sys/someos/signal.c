@@ -20,7 +20,7 @@ _sig_func_ptr signal(int signal, _sig_func_ptr handler) {
     sigaction.sa_flags = 0;
     sigaction.sa_restorer = restorer;
     asm volatile ("" : : "r"(&sigaction) : "memory");
-    int ret = handleErrors(SYSCALL(SYSCALL_SIGACTION, signal, (uintptr_t)&sigaction, (uintptr_t)&sigaction));
+    int ret = handleErrors(SYSCALL(SYSCALL_SIGACTION, signal, &sigaction, &sigaction));
     asm volatile ("" : : "r"(&sigaction) : "memory");
     if (ret == -1) {
         return (void*)(uintptr_t)ret;
@@ -32,14 +32,14 @@ _sig_func_ptr signal(int signal, _sig_func_ptr handler) {
 int sigaction(int signal, const struct sigaction* new, struct sigaction* old) {
     int ret;
     if (new == NULL) {
-        ret = handleErrors(SYSCALL(SYSCALL_SIGACTION, signal, 0, (uintptr_t)old));
+        ret = handleErrors(SYSCALL(SYSCALL_SIGACTION, signal, 0, old));
         asm volatile ("" : : "r"(old) : "memory");
     } else {
         // We have to create a copy, in order to set the restorer.
         volatile struct sigaction sigaction = *new;
         sigaction.sa_restorer = restorer;
         asm volatile ("" : : "r"(&sigaction) : "memory");
-        ret = handleErrors(SYSCALL(SYSCALL_SIGACTION, signal, (uintptr_t)&sigaction, (uintptr_t)old));
+        ret = handleErrors(SYSCALL(SYSCALL_SIGACTION, signal, &sigaction, old));
         asm volatile ("" : : "r"(old) : "memory");
     }
     return ret;

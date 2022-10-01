@@ -35,7 +35,7 @@ typedef struct {
 
 int _fstat(int file, struct stat *st) {
     volatile SyscallStat stat;
-    int error = handleErrors(SYSCALL(SYSCALL_STAT, file, (uintptr_t)&stat));
+    int error = handleErrors(SYSCALL(SYSCALL_STAT, file, &stat));
     if (error == 0) {
         st->st_dev = stat.dev;
         st->st_ino = stat.id;
@@ -58,7 +58,7 @@ int _fstat(int file, struct stat *st) {
 }
 
 int pipe(int filedes[2]) {
-    return handleErrors(SYSCALL(SYSCALL_PIPE, (uintptr_t)filedes));
+    return handleErrors(SYSCALL(SYSCALL_PIPE, filedes));
 }
 
 int _isatty(int file) {
@@ -70,7 +70,7 @@ int ioctl(int fildes, int request, ...) {
     va_start(args, request);
     void* arg = va_arg(args, void*);
     va_end(args);
-    return handleErrors(SYSCALL(SYSCALL_IOCTL, fildes, request, (uintptr_t)arg));
+    return handleErrors(SYSCALL(SYSCALL_IOCTL, fildes, request, arg));
 }
 
 int _fcntl(int fildes, int request, ...) {
@@ -89,7 +89,7 @@ int _close(int file) {
 }
 
 int _link(const char *old, const char *new) {
-    return handleErrors(SYSCALL(SYSCALL_LINK, (uintptr_t)old, (uintptr_t)new));
+    return handleErrors(SYSCALL(SYSCALL_LINK, old, new));
 }
 
 off_t _lseek(int file, off_t ptr, int dir) {
@@ -97,11 +97,11 @@ off_t _lseek(int file, off_t ptr, int dir) {
 }
 
 int _open(const char *name, int flags, int mode) {
-    return handleErrors(SYSCALL(SYSCALL_OPEN, (uintptr_t)name, flags, mode));
+    return handleErrors(SYSCALL(SYSCALL_OPEN, name, flags, mode));
 }
 
 ssize_t _read(int file, void* ptr, size_t len) {
-    return handleErrors(SYSCALL(SYSCALL_READ, file, (uintptr_t)ptr, len));
+    return handleErrors(SYSCALL(SYSCALL_READ, file, ptr, len));
 }
 
 int _stat(const char *file, struct stat *st) {
@@ -115,11 +115,11 @@ int _stat(const char *file, struct stat *st) {
 }
 
 int _unlink(const char *name) {
-    return handleErrors(SYSCALL(SYSCALL_UNLINK, (uintptr_t)name));
+    return handleErrors(SYSCALL(SYSCALL_UNLINK, name));
 }
 
 ssize_t _write(int file, const void* ptr, size_t len) {
-    return handleErrors(SYSCALL(SYSCALL_WRITE, file, (uintptr_t)ptr, len));
+    return handleErrors(SYSCALL(SYSCALL_WRITE, file, ptr, len));
 }
 
 int dup3(int src, int dst, int flags) {
@@ -155,14 +155,14 @@ int access(const char* fn, int flags) {
 }
 
 int chdir(const char* path) {
-    return handleErrors(SYSCALL(SYSCALL_CHDIR, (uintptr_t)path));
+    return handleErrors(SYSCALL(SYSCALL_CHDIR, path));
 }
 
 char* getcwd(char *buf, size_t size) {
     if (buf == NULL) {
         buf = (char *) malloc(MAX_PATH);
     }
-    int res = SYSCALL(SYSCALL_GETCWD, (uintptr_t)buf, size);
+    int res = SYSCALL(SYSCALL_GETCWD, buf, size);
     if (res < 0) {
         errno = -res;
         return NULL;
@@ -172,7 +172,7 @@ char* getcwd(char *buf, size_t size) {
 }
 
 int	mknod(const char *pathname, mode_t mode, dev_t dev) {
-    return handleErrors(SYSCALL(SYSCALL_MKNOD, (uintptr_t)pathname, mode, dev));
+    return handleErrors(SYSCALL(SYSCALL_MKNOD, pathname, mode, dev));
 }
 
 int rmdir(const char *pathname) {
@@ -188,7 +188,7 @@ int	mkfifo(const char *pathname, mode_t mode) {
 }
 
 int getdents(int fd, struct dirent* dp, int count) {
-    size_t written = SYSCALL(SYSCALL_READDIR, fd, (uintptr_t)dp, count);
+    size_t written = SYSCALL(SYSCALL_READDIR, fd, dp, count);
     return handleErrors(written);
 }
 
@@ -228,19 +228,22 @@ int	chown(const char* path, uid_t owner, gid_t group) {
 }
 
 int fchown(int fd, uid_t owner, gid_t group) {
-    return handleErrors(SYSCALL(SYSCALL_CHOWN, fd, owner, group));
+    return handleErrors(SYSCALL(
+        SYSCALL_CHOWN, fd, ((owner == (uid_t)-1) ? -1 : (uintptr_t)owner),
+        (group == (gid_t)-1) ? -1 : (uintptr_t)group
+    ));
 }
 
 int mount(const char* source, const char* target, const char* filesystemtype, unsigned long mountflags, const void* data) {
-    return handleErrors(SYSCALL(SYSCALL_MOUNT, (uintptr_t)source, (uintptr_t)target, (uintptr_t)filesystemtype, (uintptr_t)data));
+    return handleErrors(SYSCALL(SYSCALL_MOUNT, source, target, filesystemtype, data));
 }
 
 int umount(const char* target) {
-    return handleErrors(SYSCALL(SYSCALL_UMOUNT, (uintptr_t)target));
+    return handleErrors(SYSCALL(SYSCALL_UMOUNT, target));
 }
 
 int select(int nfds, fd_set* readfs, fd_set* writefds, fd_set* errorfds, struct timeval* timeout) {
     uint64_t nanos = timeout == NULL ? ~0UL : timeout->tv_sec * 1000000000UL + timeout->tv_usec * 1000UL;
-    return handleErrors(SYSCALL(SYSCALL_SELECT, nfds, (uintptr_t)readfs, (uintptr_t)writefds, (uintptr_t)errorfds, nanos));
+    return handleErrors(SYSCALL(SYSCALL_SELECT, nfds, readfs, writefds, errorfds, nanos));
 }
 
