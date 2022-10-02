@@ -11,6 +11,8 @@ _start:
     1:auipc gp, %pcrel_hi(__global_pointer$)
     addi gp, gp, %pcrel_lo(1b)
 .option pop
+    la t0, environ
+    sd a2, (t0)
     mv s0, a0 # argc
     mv s1, a1 # argv
     mv s2, a2 # envs
