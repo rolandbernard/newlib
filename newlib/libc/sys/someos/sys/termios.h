@@ -1,6 +1,8 @@
 #ifndef _SYS_TERMIOS_H
 #define _SYS_TERMIOS_H
 
+#include <sys/types.h>
+
 #define TCOOFF 0
 #define TCOON 1
 #define TCIOFF 2
@@ -113,5 +115,12 @@ struct termios {
 #define cfsetispeed(tp,s) (((tp)->c_ispeed = (s)), 0)
 #define tcdrain(fd)  _ioctl (fd, _TCSBRK, 1)
 #endif
+
+int tcgetattr(int fd, struct termios* termios_p);
+int tcsetattr(int fd, int optional_actions, const struct termios* termios_p);
+pid_t tcgetpgrp(int fd);
+int tcsetpgrp(int fd, pid_t pid);
+int tcflow(int fd, int action);
+int tcflush(int fd, int queue_selector);
 
 #endif
